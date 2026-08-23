@@ -236,17 +236,22 @@ export default function DashboardPage() {
             Zero-knowledge encrypted secret lifecycle, access events, and security management.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button
             type="button"
-            className="btn btn-ghost btn-sm"
+            className="btn btn-secondary"
+            style={{ padding: '0.55rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
             onClick={() => fetchDashboard(false)}
             title="Refresh dashboard"
           >
-            🔄 Live Sync
+            <span style={{ fontSize: '1rem' }}>🔄</span> Live Sync
           </button>
-          <Link to="/create" className="btn btn-primary btn-sm">
-            + Create Secret
+          <Link
+            to="/create"
+            className="btn btn-primary btn-glow"
+            style={{ padding: '0.55rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            <span style={{ fontSize: '1rem' }}>➕</span> Create Secret
           </Link>
         </div>
       </div>
@@ -382,26 +387,44 @@ export default function DashboardPage() {
                         {renderStatusBadge(secret.status, secret.has_suspicious_activity)}
                       </td>
 
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <td style={{ padding: '1.1rem 1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
                           <button
                             type="button"
                             onClick={() => handleOpenManage(secret)}
-                            className="btn btn-secondary btn-sm"
-                            style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                            className="btn btn-primary"
+                            style={{
+                              padding: '0.45rem 0.95rem',
+                              fontSize: '0.85rem',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.4rem',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 8px rgba(6, 182, 212, 0.25)',
+                            }}
                           >
-                            Manage
+                            <span style={{ fontSize: '1rem' }}>⚙️</span> Manage
                           </button>
 
                           {isAlive && (
                             <button
                               type="button"
                               onClick={() => handleToggleLock(secret)}
-                              className="btn btn-ghost btn-sm"
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                              className="btn btn-secondary"
+                              style={{
+                                padding: '0.45rem 0.85rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                cursor: 'pointer',
+                              }}
                               title={secret.is_locked ? 'Unlock secret' : 'Lock secret'}
                             >
-                              {secret.is_locked ? '🔓 Unlock' : '🔒 Lock'}
+                              <span style={{ fontSize: '1rem' }}>{secret.is_locked ? '🔓' : '🔒'}</span>
+                              {secret.is_locked ? 'Unlock' : 'Lock'}
                             </button>
                           )}
 
@@ -409,11 +432,19 @@ export default function DashboardPage() {
                             <button
                               type="button"
                               onClick={() => handleRevoke(secret.id)}
-                              className="btn btn-danger btn-sm"
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                              className="btn btn-danger"
+                              style={{
+                                padding: '0.45rem 0.85rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.4rem',
+                                cursor: 'pointer',
+                              }}
                               title="Revoke secret"
                             >
-                              Revoke
+                              <span style={{ fontSize: '1rem' }}>🗑️</span> Revoke
                             </button>
                           )}
                         </div>
@@ -570,25 +601,29 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                className={`btn ${selectedSecret.is_locked ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                className={`btn ${selectedSecret.is_locked ? 'btn-primary' : 'btn-secondary'}`}
+                style={{ padding: '0.6rem 1.1rem', fontSize: '0.9rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
                 onClick={() => handleToggleLock(selectedSecret)}
               >
-                {selectedSecret.is_locked ? '🔓 Unlock Secret' : '🔒 Lock Secret'}
+                <span style={{ fontSize: '1.1rem' }}>{selectedSecret.is_locked ? '🔓' : '🔒'}</span>
+                {selectedSecret.is_locked ? 'Unlock Secret' : 'Lock Secret'}
               </button>
 
               <button
                 type="button"
-                className="btn btn-danger btn-sm"
+                className="btn btn-danger"
+                style={{ padding: '0.6rem 1.1rem', fontSize: '0.9rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
                 onClick={() => handleRevoke(selectedSecret.id)}
               >
-                🗑️ Revoke Permanently
+                <span style={{ fontSize: '1.1rem' }}>🗑️</span> Revoke Permanently
               </button>
 
               <Link
                 to={`/created/${selectedSecret.id}`}
-                className="btn btn-ghost btn-sm"
+                className="btn btn-ghost"
+                style={{ padding: '0.6rem 1.1rem', fontSize: '0.9rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
               >
-                🔗 View QR & Link
+                <span style={{ fontSize: '1.1rem' }}>🔗</span> View QR & Link
               </Link>
             </div>
 
