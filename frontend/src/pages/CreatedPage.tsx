@@ -37,6 +37,7 @@ export default function CreatedPage() {
   const { id } = useParams<{ id: string }>();
   const [shareUrl, setShareUrl] = useState('');
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [keyUnavailable, setKeyUnavailable] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const countdown = useCountdown(expiresAt);
@@ -44,6 +45,11 @@ export default function CreatedPage() {
   useEffect(() => {
     if (!id) return;
 
+    // The encryption key never touches the server — it only ever lives in this
+    // browser's sessionStorage (set at creation time in CreatePage). We read it
+    // here WITHOUT deleting it, so that navigating back to this page later (e.g.
+    // via Dashboard -> Manage -> View URL/QR) can still reconstruct the original
+    // share link for the lifetime of this browser session.
     const keyData = sessionStorage.getItem(`vd_key_${id}`);
     const exp = sessionStorage.getItem(`vd_exp_${id}`);
 
@@ -53,13 +59,18 @@ export default function CreatedPage() {
     }
 
     if (!keyData) {
+      // Zero-knowledge architecture: the key was never sent to or stored by the
+      // backend, so if it's no longer in this browser's session storage (e.g. a
+      // different browser/session, or the tab was closed and reopened), there is
+      // no way to recover it. Surface that clearly instead of generating a share
+      // link/QR code that's missing the decryption key fragment.
+      setKeyUnavailable(true);
       setShareUrl(`${window.location.origin}/s/${id}`);
       return;
     }
 
     const url = `${window.location.origin}/s/${id}#${keyData}`;
     setShareUrl(url);
-    sessionStorage.removeItem(`vd_key_${id}`);
   }, [id]);
 
   async function copyToClipboard() {
@@ -137,55 +148,71 @@ export default function CreatedPage() {
           </div>
         )}
 
-        {/* Share Link Box */}
-        <div className="form-group">
-          <label className="form-label">Secret Share Link</label>
-          <div className="copy-area">
-            <span className="copy-area-text">{shareUrl}</span>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={copyToClipboard}
-              aria-label="Copy link to clipboard"
-            >
-              📋 Copy
-            </button>
+        {keyUnavailable ? (
+          <div className="banner banner-danger" style={{ marginBottom: '1rem' }}>
+            <span className="banner-icon">⚠️</span>
+            <div>
+              <strong>Decryption key not available in this session.</strong> VaultDrop never
+              sends or stores the key on the server, so it can only be recovered from the
+              browser session that created this secret. Use the original share link or QR
+              code you saved when this secret was first created.
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Share Link Box */}
+            <div className="form-group">
+              <label className="form-label">Secret Share Link</label>
+              <div className="copy-area">
+                <span className="copy-area-text">{shareUrl}</span>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={copyToClipboard}
+                  aria-label="Copy link to clipboard"
+                >
+                  📋 Copy
+                </button>
+              </div>
+            </div>
 
-        {/* QR Code Section */}
-        <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
-          <label className="form-label" style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
-            Mobile QR Transfer
-          </label>
-          <div ref={qrRef} className="qr-container">
-            <QRCodeSVG
-              value={shareUrl}
-              size={180}
-              bgColor="#ffffff"
-              fgColor="#0a0e17"
-              level="M"
-            />
-          </div>
-          <div style={{ marginTop: '0.75rem' }}>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              onClick={downloadQR}
-            >
-              📥 Download QR Image
-            </button>
-          </div>
-        </div>
+            {/* QR Code Section */}
+            <div style={{ textAlign: 'center', margin: '1.5rem 0' }}>
+              <label className="form-label" style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
+                Mobile QR Transfer
+              </label>
+              <div ref={qrRef} className="qr-container">
+                <QRCodeSVG
+                  value={shareUrl}
+                  size={180}
+                  bgColor="#ffffff"
+                  fgColor="#0a0e17"
+                  level="M"
+                />
+              </div>
+              <div style={{ marginTop: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={downloadQR}
+                >
+                  📥 Download QR Image
+                </button>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Warning Banner */}
-        <div className="banner banner-warning" style={{ marginTop: '1rem' }}>
-          <span className="banner-icon">⚠️</span>
-          <div>
-            <strong>Security Notice:</strong> Anyone with this link can decrypt the secret.
-            VaultDrop does not store this link or key.
+        {!keyUnavailable && (
+          <div className="banner banner-warning" style={{ marginTop: '1rem' }}>
+            <span className="banner-icon">⚠️</span>
+            <div>
+              <strong>Security Notice:</strong> Anyone with this link can decrypt the secret.
+              VaultDrop does not store this link or key.
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>

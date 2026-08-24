@@ -170,22 +170,23 @@ export default function ViewPage() {
         return;
       }
 
-      // Non-password one-time secrets: consume immediately
-      if (data.one_time) {
-        try {
-          data = await consumeSecret(secretId);
-          setSecretData(data);
-        } catch (err) {
-          if (err instanceof ApiError && err.status === 410) {
-            setState('destroyed');
-            return;
-          }
-          if (err instanceof ApiError && err.status === 423) {
-            setState('locked');
-            return;
-          }
-          throw err;
+      // Non-password secrets: this GET already proved the secret is live, so
+      // this attempt is about to succeed. Consume it now to record a successful
+      // view (this is what drives the "Views" counter for every secret, not
+      // just one-time ones).
+      try {
+        data = await consumeSecret(secretId);
+        setSecretData(data);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 410) {
+          setState('destroyed');
+          return;
         }
+        if (err instanceof ApiError && err.status === 423) {
+          setState('locked');
+          return;
+        }
+        throw err;
       }
 
       if (data.secret_type === 'file') {
@@ -228,23 +229,25 @@ export default function ViewPage() {
       const [wrappedKey, wrapIv, salt] = parts;
       const dataKey = await unwrapKeyWithPassword(wrappedKey, wrapIv, salt, password);
 
-      // Consume after successful password verification
+      // Password verified successfully — this is a successful access. Consume
+      // now to record the view (for every secret, not just one-time ones).
+      // A wrong password never reaches this point: unwrapKeyWithPassword throws
+      // above and is handled in the catch block below via recordFailedAttempt,
+      // so Views is never incremented for a failed password attempt.
       let dataToDecrypt = secretData;
-      if (secretData.one_time) {
-        try {
-          dataToDecrypt = await consumeSecret(id);
-          setSecretData(dataToDecrypt);
-        } catch (err) {
-          if (err instanceof ApiError && err.status === 410) {
-            setState('destroyed');
-            return;
-          }
-          if (err instanceof ApiError && err.status === 423) {
-            setState('locked');
-            return;
-          }
-          throw err;
+      try {
+        dataToDecrypt = await consumeSecret(id);
+        setSecretData(dataToDecrypt);
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 410) {
+          setState('destroyed');
+          return;
         }
+        if (err instanceof ApiError && err.status === 423) {
+          setState('locked');
+          return;
+        }
+        throw err;
       }
 
       if (dataToDecrypt.secret_type === 'file') {

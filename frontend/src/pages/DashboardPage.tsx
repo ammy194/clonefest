@@ -371,7 +371,7 @@ export default function DashboardPage() {
                           {secret.successful_view_count ?? secret.view_count} / {secret.max_views}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          {secret.access_attempt_count} attempts • {secret.failed_attempts} failed
+                          {secret.failed_attempts} failed attempts
                         </div>
                       </td>
 
@@ -572,11 +572,7 @@ export default function DashboardPage() {
                 <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedSecret.successful_view_count ?? selectedSecret.view_count} / {selectedSecret.max_views}</div>
               </div>
               <div style={{ background: 'var(--bg-input)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Attempts</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>{selectedSecret.access_attempt_count}</div>
-              </div>
-              <div style={{ background: 'var(--bg-input)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Failed</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Failed Attempts</div>
                 <div style={{ fontSize: '1.1rem', fontWeight: 700, color: selectedSecret.failed_attempts > 0 ? '#fbbf24' : 'inherit' }}>
                   {selectedSecret.failed_attempts}
                 </div>
