@@ -55,7 +55,6 @@ export default function CreatedPage() {
 
     if (exp) {
       setExpiresAt(exp);
-      sessionStorage.removeItem(`vd_exp_${id}`);
     }
 
     if (!keyData) {
