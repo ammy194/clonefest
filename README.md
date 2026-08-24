@@ -409,43 +409,96 @@ npm run build
 
 ## 14. Screenshots
 
-The following interface captures illustrate the primary user workflows and security controls:
+The following high-resolution interface captures illustrate the end-to-end workflows, client-side cryptographic isolation, and real-time governance capabilities across VaultDrop:
 
-### 1. Secret Creation Interface
-![Secret Creation Interface](docs/screenshots/01_secret_creation.png)
-*Client-side secret creation form with payload type selectors, view limits, and expiration options.*
+---
 
-### 2. Security Risk Analysis
-![Security Risk Analysis](docs/screenshots/02_security_risk_analysis.png)
-*Deterministic pattern analyzer identifying credential types and calculating a risk score locally.*
+### Phase 1: Creation & Local Security Intelligence
 
-### 3. Security Configuration & Policy Enforcement
-![Security Configuration](docs/screenshots/03_security_configuration.png)
-*Configuring passphrase wrapping, view counts, and time-to-live restrictions.*
+#### 1. Landing Page & Zero-Knowledge Architecture
+<p align="center">
+  <img src="docs/screenshots/01_landing_page.png" alt="Landing Page & Architecture" width="900" />
+</p>
 
-### 4. Encrypted File Sharing & Syntax Highlighting
-![Encrypted File Sharing](docs/screenshots/04_encrypted_file_sharing.png)
-*Decrypted code and markdown rendered directly in the browser with syntax formatting.*
+> **Zero-Knowledge Architecture:** The initial entry point highlights client-side encryption primitives, temporary storage guarantees, and the core zero-knowledge threat model before secret creation.
 
-### 5. Mobile QR Transfer
-![Mobile QR Transfer](docs/screenshots/05_mobile_qr_transfer.png)
-*Client-side QR generation for secure mobile link handoff.*
+---
 
-### 6. Owner Control Center
-![Owner Control Center](docs/screenshots/06_owner_control_center.png)
-*Active secret overview, view counts, and management controls authorized via creator tokens.*
+#### 2. Secret Creation Interface & Payload Selectors
+<p align="center">
+  <img src="docs/screenshots/02_secret_creation_interface.png" alt="Secret Creation Form" width="900" />
+</p>
 
-### 7. Security Activity Audit Timeline
-![Security Activity](docs/screenshots/07_security_activity.png)
-*Immutable event timeline detailing access attempts, decryptions, and administrative changes.*
+> **Multi-Payload Support:** Dedicated interface supporting raw text, API keys, passwords, `.env` files, JSON configs, code snippets, Markdown docs, and encrypted file uploads with customizable time-to-live (5 min to 7 days).
 
-### 8. Suspicious Activity Detection
-![Suspicious Activity](docs/screenshots/08_suspicious_activity.png)
-*Heuristic alert banner triggered by repeated failed passcodes or access to burned links.*
+---
 
-### 9. Privacy & Threat Model
-![Privacy and Threat Model](docs/screenshots/09_privacy_threat_model.png)
-*Comprehensive in-app security specification outlining protection boundaries.*
+#### 3. Real-Time Client-Side Security Risk Analysis
+<p align="center">
+  <img src="docs/screenshots/03_security_risk_analysis.png" alt="Security Risk Analysis" width="900" />
+</p>
+
+> **In-Browser Heuristics:** Deterministic rule engine inspects payloads 100% in-browser prior to encryption, calculating a dynamic Security Score and suggesting 1-click hardening policies (burn-after-reading, password protection, reduced expiration).
+
+---
+
+### Phase 2: Secure Distribution & Recipient Decryption
+
+#### 4. Shareable Link & Mobile QR Transfer Handoff
+<p align="center">
+  <img src="docs/screenshots/04_secret_link_qr_transfer.png" alt="Secret Share Link and Mobile QR Transfer" width="900" />
+</p>
+
+> **Key Isolation via URL Fragments:** Decryption keys reside exclusively in the URI fragment (`#<key>`) and are never dispatched over HTTP. Instant QR code rendering facilitates seamless mobile handoff without third-party tools.
+
+---
+
+#### 5. Recipient Decryption & Ephemeral Payload View
+<p align="center">
+  <img src="docs/screenshots/05_recipient_decryption_view.png" alt="Recipient Decryption View" width="900" />
+</p>
+
+> **In-Browser Decryption:** Recipient client automatically derives encryption keys from the URL hash, decrypts ciphertext via Web Crypto AES-256-GCM, and renders syntax-highlighted content with an active lifespan countdown and manual burn controls.
+
+---
+
+### Phase 3: Owner Control Center & Governance
+
+#### 6. Owner Control Center Dashboard
+<p align="center">
+  <img src="docs/screenshots/06_owner_control_center.png" alt="Owner Control Center Dashboard" width="900" />
+</p>
+
+> **Zero-Knowledge Management:** Creators track active secrets, view consumption counters, and monitor operational telemetry authenticated strictly through client-stored creator tokens without persistent user accounts.
+
+---
+
+#### 7. Secret Lifecycle Management & Audit Modal
+<p align="center">
+  <img src="docs/screenshots/07_manage_secret_modal.png" alt="Secret Lifecycle Management Modal" width="900" />
+</p>
+
+> **Granular Lifecycle Controls:** Real-time modal enabling creators to temporarily lock access (returning HTTP 423), adjust view allowances, reset expiration windows, or permanently revoke secrets with an attached audit event history.
+
+---
+
+#### 8. Security Activity Timeline & Anomaly Detection
+<p align="center">
+  <img src="docs/screenshots/08_security_activity_audit.png" alt="Security Activity and Anomaly Alerts" width="900" />
+</p>
+
+> **Heuristic Anomaly Alerts & Emergency Controls:** Immutable audit timeline flags repeated failed password attempts and hits on burned links, paired with a 1-click emergency lockdown command to batch-revoke all active browser secrets.
+
+---
+
+### Phase 4: Threat Model & Cryptographic Specification
+
+#### 9. Privacy & Threat Model Architecture
+<p align="center">
+  <img src="docs/screenshots/09_privacy_threat_model.png" alt="Privacy and Threat Model Specification" width="900" />
+</p>
+
+> **Formal Verification & Boundaries:** Comprehensive in-application documentation specifying cryptographic algorithms (AES-256-GCM, PBKDF2-HMAC-SHA256), memory isolation, and protected threat scenarios.
 
 ---
 
