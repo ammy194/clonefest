@@ -358,6 +358,87 @@ async def test_emergency_revoke_all(client):
     assert (await client.get(f"/api/secrets/{create2.json()['id']}")).status_code == 410
 
 
+async def test_views_and_failed_attempts_contract(client):
+    """Locks in the exact "Views" / "Failed Attempts" contract the frontend
+    relies on (VaultDrop Fix 2): a failed password attempt must never move
+    the successful-view counters, and only /consume (called on an actual
+    successful decryption) may increment them. access_attempt_count (bumped
+    on every GET) is a separate, internal-only metric and must not be
+    conflated with "Views".
+    """
+    create_resp = await client.post("/api/secrets", json=valid_payload(max_views=3))
+    assert create_resp.status_code == 201
+    secret_id = create_resp.json()["id"]
+
+    # Fresh secret: no views, no failures yet.
+    data = (await client.get(f"/api/secrets/{secret_id}")).json()
+    assert data["successful_view_count"] == 0
+    assert data["view_count"] == 0
+    assert data["failed_attempts"] == 0
+
+    # Two wrong-password attempts (this is what the frontend calls when
+    # unwrapKeyWithPassword throws) must only bump failed_attempts.
+    for _ in range(2):
+        fail_resp = await client.post(
+            f"/api/secrets/{secret_id}/failed-attempt",
+            json={"reason": "Incorrect password attempt"},
+        )
+        assert fail_resp.status_code == 200
+
+    data = (await client.get(f"/api/secrets/{secret_id}")).json()
+    assert data["failed_attempts"] == 2
+    assert data["successful_view_count"] == 0
+    assert data["view_count"] == 0
+
+    # A successful decryption calls /consume — this is the only thing that
+    # should move the Views counters, and it must not touch failed_attempts.
+    consume_resp = await client.post(f"/api/secrets/{secret_id}/consume")
+    assert consume_resp.status_code == 200
+    consume_data = consume_resp.json()
+    assert consume_data["successful_view_count"] == 1
+    assert consume_data["view_count"] == 1
+    assert consume_data["failed_attempts"] == 2
+
+    # A second successful decryption increments Views again.
+    consume_resp_2 = await client.post(f"/api/secrets/{secret_id}/consume")
+    assert consume_resp_2.status_code == 200
+    assert consume_resp_2.json()["successful_view_count"] == 2
+    assert consume_resp_2.json()["failed_attempts"] == 2
+
+
+async def test_max_views_enforced_via_successful_consumes_only(client):
+    """max_views must be enforced against successful accesses (consume calls),
+    matching how the frontend now drives the Views counter for every secret
+    (not just one-time ones). Wrong-password attempts must never consume a
+    view slot.
+    """
+    create_resp = await client.post("/api/secrets", json=valid_payload(max_views=3))
+    secret_id = create_resp.json()["id"]
+
+    # Failed attempts must not eat into the view budget (they may still flag
+    # the secret as suspicious once >= 3, which is separate, pre-existing
+    # behavior unrelated to the view budget itself).
+    for _ in range(2):
+        await client.post(f"/api/secrets/{secret_id}/failed-attempt", json={"reason": "Wrong password"})
+    data = (await client.get(f"/api/secrets/{secret_id}")).json()
+    assert data["status"] == "active"
+    assert data["successful_view_count"] == 0
+
+    # Three successful accesses are allowed.
+    for expected_count in (1, 2, 3):
+        resp = await client.post(f"/api/secrets/{secret_id}/consume")
+        assert resp.status_code == 200
+        assert resp.json()["successful_view_count"] == expected_count
+
+    # The 4th successful access must be blocked (secret burned after limit).
+    blocked_resp = await client.post(f"/api/secrets/{secret_id}/consume")
+    assert blocked_resp.status_code == 410
+
+    # And a fresh GET after the limit is reached must also be blocked.
+    get_after = await client.get(f"/api/secrets/{secret_id}")
+    assert get_after.status_code == 410
+
+
 async def test_unauthorized_creator_token_actions(client):
     create_resp = await client.post("/api/secrets", json=valid_payload())
     secret_id = create_resp.json()["id"]
