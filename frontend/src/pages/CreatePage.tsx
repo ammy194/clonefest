@@ -144,12 +144,12 @@ export default function CreatePage() {
     if (!oneTime) {
       const trimmed = maxViews.trim();
       if (trimmed === '') {
-        setError('Please enter a maximum views value between 1 and 100.');
+        setError('Please enter a maximum views value (minimum 1).');
         return;
       }
       const parsed = Number(trimmed);
-      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 100) {
-        setError('Maximum views must be a whole number between 1 and 100.');
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 1_000_000) {
+        setError('Maximum views must be a whole number between 1 and 1,000,000.');
         return;
       }
       resolvedMaxViews = parsed;
@@ -527,7 +527,7 @@ export default function CreatePage() {
           <div className="toggle-desc" style={{ marginTop: '0.35rem' }}>
             {oneTime
               ? 'Burn after reading limits this secret to one successful view.'
-              : 'How many times this secret can be successfully viewed (1–100).'}
+              : 'How many times this secret can be successfully viewed (minimum 1).'}
           </div>
         </div>
 

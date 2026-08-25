@@ -160,12 +160,12 @@ export default function DashboardPage() {
     if (!editOneTime) {
       const trimmed = editMaxViews.trim();
       if (trimmed === '') {
-        setSettingsError('Please enter a maximum views value between 1 and 100.');
+        setSettingsError('Please enter a maximum views value (minimum 1).');
         return;
       }
       const parsed = Number(trimmed);
-      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 100) {
-        setSettingsError('Maximum views must be a whole number between 1 and 100.');
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 1_000_000) {
+        setSettingsError('Maximum views must be a whole number between 1 and 1,000,000.');
         return;
       }
       resolvedMaxViews = parsed;
@@ -653,7 +653,7 @@ export default function DashboardPage() {
                 </h4>
 
                 <div className="form-group">
-                  <label className="form-label" style={{ fontSize: '0.8rem' }}>Allowed Views (1 - 100)</label>
+                  <label className="form-label" style={{ fontSize: '0.8rem' }}>Allowed Views (min 1)</label>
                   <input
                     type="text"
                     inputMode="numeric"

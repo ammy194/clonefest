@@ -459,3 +459,26 @@ async def test_unauthorized_creator_token_actions(client):
     res4 = await client.post(f"/api/secrets/{secret_id}/events", json={"creator_token": "wrong_token"})
     assert res4.status_code == 401
 
+
+async def test_large_max_views_allowed(client):
+    """Verify that max_views > 100 (e.g. 10000) can be configured and updated."""
+    create_resp = await client.post("/api/secrets", json=valid_payload(max_views=10000))
+    assert create_resp.status_code == 201
+    secret_id = create_resp.json()["id"]
+    creator_token = create_resp.json()["creator_token"]
+
+    get_resp = await client.get(f"/api/secrets/{secret_id}")
+    assert get_resp.status_code == 200
+    assert get_resp.json()["max_views"] == 10000
+
+    # Update settings to 50000
+    patch_resp = await client.patch(
+        f"/api/secrets/{secret_id}",
+        json={"creator_token": creator_token, "max_views": 50000}
+    )
+    assert patch_resp.status_code == 200
+
+    updated_get = await client.get(f"/api/secrets/{secret_id}")
+    assert updated_get.json()["max_views"] == 50000
+
+

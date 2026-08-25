@@ -35,7 +35,7 @@ VaultDrop is designed for software engineers, DevOps practitioners, security ana
 |---|---|
 | Client-Side Encryption | AES-256-GCM authenticated encryption executed locally in the browser via the Web Crypto API before transmission. |
 | Secret Risk Analysis | Local pattern-matching engine detects credential types and calculates a risk score with actionable recommendations. |
-| Self-Destructing Secrets | Configurable time-to-live (5 minutes to 7 days) and view limits (1 to 100 views) with automatic permanent deletion. |
+| Self-Destructing Secrets | Configurable time-to-live (5 minutes to 7 days) and customizable view limits with automatic permanent deletion. |
 | Encrypted File Sharing | In-browser binary encryption supporting source code, configurations, and documents up to 15MB with syntax highlighting. |
 | Access Analytics | Non-identifying operational metrics tracking view counts, failed decryption attempts, and audit events without storing IP addresses. |
 | Suspicious Activity Detection | Heuristic detection engine flags abnormal access frequencies, repeated incorrect passwords, and attempts on burned links. |

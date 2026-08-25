@@ -35,7 +35,7 @@ class SecretCreate(BaseModel):
     secret_type: SecretType
     expires_in_seconds: int = Field(..., ge=MIN_EXPIRATION, le=MAX_EXPIRATION)
     one_time: bool = False
-    max_views: int = Field(default=100, ge=1, le=100)
+    max_views: int = Field(default=100, ge=1, le=1_000_000)
     password_protected: bool = False
     password_salt: str | None = None
     password_verifier: str | None = None
@@ -133,7 +133,7 @@ class SecretLockRequest(BaseModel):
 
 class SecretSettingsUpdateRequest(BaseModel):
     creator_token: str
-    max_views: int | None = Field(default=None, ge=1, le=100)
+    max_views: int | None = Field(default=None, ge=1, le=1_000_000)
     expires_in_seconds: int | None = Field(default=None, ge=MIN_EXPIRATION, le=MAX_EXPIRATION)
     one_time: bool | None = None
 
