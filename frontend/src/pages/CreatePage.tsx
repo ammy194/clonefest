@@ -32,6 +32,8 @@ export default function CreatePage() {
   const [secretContent, setSecretContent] = useState('');
   const [expiresIn, setExpiresIn] = useState(3600);
   const [oneTime, setOneTime] = useState(false);
+  const [maxViews, setMaxViews] = useState('100');
+  const [previousMaxViews, setPreviousMaxViews] = useState('100');
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -56,9 +58,22 @@ export default function CreatePage() {
 
   const detectionResult = useMemo(() => detectSecrets(rawContent), [rawContent]);
 
+  function handleOneTimeToggle(checked: boolean) {
+    if (checked) {
+      // Burn after reading forces exactly one view; remember the prior value.
+      setPreviousMaxViews(maxViews);
+      setMaxViews('1');
+    } else {
+      // Restore the previously selected value, falling back to 100.
+      const restored = previousMaxViews && previousMaxViews.trim() !== '' ? previousMaxViews : '100';
+      setMaxViews(restored);
+    }
+    setOneTime(checked);
+  }
+
   function applyRecommendations() {
     if (detectionResult.detected && detectionResult.recommendedSettings) {
-      setOneTime(detectionResult.recommendedSettings.oneTime);
+      handleOneTimeToggle(detectionResult.recommendedSettings.oneTime);
       setExpiresIn(detectionResult.recommendedSettings.expiresInSeconds);
       setPasswordProtected(detectionResult.recommendedSettings.passwordProtected);
     }
@@ -124,6 +139,22 @@ export default function CreatePage() {
       }
     }
 
+    // Maximum views: burn-after-reading always forces exactly 1.
+    let resolvedMaxViews = 1;
+    if (!oneTime) {
+      const trimmed = maxViews.trim();
+      if (trimmed === '') {
+        setError('Please enter a maximum views value between 1 and 100.');
+        return;
+      }
+      const parsed = Number(trimmed);
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 100) {
+        setError('Maximum views must be a whole number between 1 and 100.');
+        return;
+      }
+      resolvedMaxViews = parsed;
+    }
+
     let plaintext = '';
     if (secretType !== 'file') {
       try {
@@ -173,6 +204,7 @@ export default function CreatePage() {
         secret_type: secretType,
         expires_in_seconds: expiresIn,
         one_time: oneTime,
+        max_views: resolvedMaxViews,
         password_protected: passwordProtected,
         password_salt: passwordSalt,
         password_verifier: passwordVerifier,
@@ -463,13 +495,39 @@ export default function CreatePage() {
             <input
               type="checkbox"
               checked={oneTime}
-              onChange={(e) => setOneTime(e.target.checked)}
+              onChange={(e) => handleOneTimeToggle(e.target.checked)}
             />
             <span className="toggle-slider" />
           </label>
           <div>
             <span className="toggle-label">Destroy after first view (Burn after reading)</span>
             <div className="toggle-desc">Link permanently self-destructs after being viewed once</div>
+          </div>
+        </div>
+
+        {/* Maximum Views */}
+        <div className="form-group">
+          <label htmlFor="max-views" className="form-label">Maximum Views</label>
+          <input
+            id="max-views"
+            type="text"
+            inputMode="numeric"
+            className="form-input"
+            placeholder="100"
+            value={maxViews}
+            onChange={(e) => {
+              const val = e.target.value;
+              // Allow only an empty string or digits while editing.
+              if (val === '' || /^[0-9]+$/.test(val)) {
+                setMaxViews(val);
+              }
+            }}
+            disabled={oneTime}
+          />
+          <div className="toggle-desc" style={{ marginTop: '0.35rem' }}>
+            {oneTime
+              ? 'Burn after reading limits this secret to one successful view.'
+              : 'How many times this secret can be successfully viewed (1–100).'}
           </div>
         </div>
 

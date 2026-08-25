@@ -31,10 +31,13 @@ export default function DashboardPage() {
   const [emergencyLoading, setEmergencyLoading] = useState(false);
 
   // Edit settings form inside modal
-  const [editMaxViews, setEditMaxViews] = useState(1);
+  // editMaxViews is kept as a string so the input can be freely edited
+  // (e.g. backspaced to empty) without being force-converted mid-typing.
+  const [editMaxViews, setEditMaxViews] = useState('1');
   const [editExpiresIn, setEditExpiresIn] = useState(3600);
   const [editOneTime, setEditOneTime] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsError, setSettingsError] = useState('');
 
   const pollingRef = useRef<number | null>(null);
 
@@ -87,8 +90,9 @@ export default function DashboardPage() {
 
   async function handleOpenManage(secret: SecretActivityResponse) {
     setSelectedSecret(secret);
-    setEditMaxViews(secret.max_views);
+    setEditMaxViews(String(secret.max_views));
     setEditOneTime(secret.one_time);
+    setSettingsError('');
     setSecretEvents([]);
     setLoadingEvents(true);
 
@@ -149,13 +153,31 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!selectedSecret) return;
 
+    setSettingsError('');
+
+    // Resolve and validate the max views value before sending it to the backend.
+    let resolvedMaxViews = 1;
+    if (!editOneTime) {
+      const trimmed = editMaxViews.trim();
+      if (trimmed === '') {
+        setSettingsError('Please enter a maximum views value between 1 and 100.');
+        return;
+      }
+      const parsed = Number(trimmed);
+      if (!Number.isInteger(parsed) || parsed < 1 || parsed > 100) {
+        setSettingsError('Maximum views must be a whole number between 1 and 100.');
+        return;
+      }
+      resolvedMaxViews = parsed;
+    }
+
     setSavingSettings(true);
     try {
       const token = getStoredToken(selectedSecret.id);
       if (!token) throw new Error('Creator token missing');
 
       await updateSecretSettings(selectedSecret.id, token, {
-        max_views: editMaxViews,
+        max_views: resolvedMaxViews,
         expires_in_seconds: editExpiresIn,
         one_time: editOneTime,
       });
@@ -164,7 +186,7 @@ export default function DashboardPage() {
       fetchDashboard(false);
       handleOpenManage({
         ...selectedSecret,
-        max_views: editOneTime ? 1 : editMaxViews,
+        max_views: resolvedMaxViews,
         one_time: editOneTime,
       });
     } catch {
@@ -633,14 +655,25 @@ export default function DashboardPage() {
                 <div className="form-group">
                   <label className="form-label" style={{ fontSize: '0.8rem' }}>Allowed Views (1 - 100)</label>
                   <input
-                    type="number"
-                    min="1"
-                    max="100"
+                    type="text"
+                    inputMode="numeric"
                     className="form-input"
                     value={editMaxViews}
-                    onChange={(e) => setEditMaxViews(parseInt(e.target.value, 10) || 1)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      // Allow only an empty string or digits while editing,
+                      // so the user can backspace/retype without the field
+                      // being forced back to 1 mid-edit.
+                      if (val === '' || /^[0-9]+$/.test(val)) {
+                        setEditMaxViews(val);
+                        setSettingsError('');
+                      }
+                    }}
                     disabled={editOneTime}
                   />
+                  {settingsError && (
+                    <div className="form-error">{settingsError}</div>
+                  )}
                 </div>
 
                 <div className="form-group">
