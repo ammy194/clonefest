@@ -15,7 +15,7 @@ class Secret(Base):
     secret_type: Mapped[str] = mapped_column(String(20), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     one_time: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    max_views: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    max_views: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
     view_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     destroyed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_locked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

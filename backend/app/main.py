@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
         # Attempt to add new columns for upgrades (silently ignores if they exist on Postgres)
         if engine.dialect.name == "postgresql":
             for col_def in [
-                "max_views INTEGER DEFAULT 1",
+                "max_views INTEGER DEFAULT 100",
                 "view_count INTEGER DEFAULT 0",
                 "file_name VARCHAR(255)",
                 "file_size INTEGER",

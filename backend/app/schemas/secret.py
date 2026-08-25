@@ -35,7 +35,7 @@ class SecretCreate(BaseModel):
     secret_type: SecretType
     expires_in_seconds: int = Field(..., ge=MIN_EXPIRATION, le=MAX_EXPIRATION)
     one_time: bool = False
-    max_views: int = Field(default=1, ge=1, le=100)
+    max_views: int = Field(default=100, ge=1, le=100)
     password_protected: bool = False
     password_salt: str | None = None
     password_verifier: str | None = None
